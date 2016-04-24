@@ -1,0 +1,13 @@
+{
+  "name": "tink_clone",
+  "url": "https://github.com/haxetink/tink_clone",
+  "license": "MIT",
+  "tags":["cross", "clone"],
+  "classPath": "src",
+  "contributors": ["kevinresol"],
+  "version": "0.0.1",
+  "releasenote": "Initial commit",
+  "dependencies": {
+	  "tink_typecrawler":""
+  }
+}
