@@ -9,9 +9,9 @@ import tink.typecrawler.Generator;
 
 using haxe.macro.Tools;
 using tink.MacroApi;
+using tink.CoreApi;
 
-class Macro
-{
+class Macro {
 	static var counter = 0;
 	
 	static function getType(name)
@@ -21,8 +21,7 @@ class Macro
 				case v: throw 'assert ' + v;
 			}
 	
-	public static function buildCloner():Type
-	{
+	public static function buildCloner():Type {
 		var t = getType('tink.clone.Cloner');
 		var name = 'Cloner${counter++}';
 		var ct = t.toComplex();
@@ -50,8 +49,9 @@ class Macro
 }
 
 class GenCloner {
-	static public function args()
-		return ['value'];
+	
+	static public function wrap(placeholder:Expr, ct:ComplexType)
+		return placeholder.func(['value'.toArg(ct)]);
 		
 	static public function nullable(e)
 		return macro if(value != null) $e else null;
@@ -90,7 +90,7 @@ class GenCloner {
 		}
 		
 	static public function anon(fields:Array<FieldInfo>, ct)
-		return (macro function (value:$ct) {
+		return macro {
 			var __ret:Dynamic = {};
 			$b{[for(f in fields) {
 				var name = f.name;
@@ -101,15 +101,13 @@ class GenCloner {
 				}
 				f.optional ? macro if(Reflect.hasField(value, $v{name})) $e : e;
 			}]}
-			return __ret;
-		}).getFunction().sure();
+			__ret;
+		}
 		
 	static public function array(e:Expr)
-	{
 		return macro if(!deepCopyArray) value else {
 			[for(value in value) $e];
 		}
-	}
 		
 	static public function enm(constructors:Array<EnumConstructor>, type, _, _) {
 		var cases = [];
@@ -154,4 +152,10 @@ class GenCloner {
 			default: 
 				None;
 		}
+	
+	static public function shouldIncludeField(c:ClassField, owner:Option<ClassType>):Bool
+		return Helper.shouldIncludeField(c, owner);
+
+	static public function drive(type:Type, pos:Position, gen:Type->Position->Expr):Expr
+		return gen(type, pos);
 }

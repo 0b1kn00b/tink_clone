@@ -6,22 +6,18 @@ import haxe.unit.TestRunner;
 import tink.Clone;
 using Lambda;
 
-class RunTests extends TestCase
-{
-	static function main() 
-	{
+class RunTests extends TestCase {
+	static function main() {
 		var t = new TestRunner();
 		t.add(new RunTests());
-		if(!t.run())
-		{
+		if(!t.run()) {
 			#if sys
 			Sys.exit(500);
 			#end
 		}
 	}
 	
-	function testDate()
-	{
+	function testDate() {
 		var now = new Date(2016,1,1,1,1,1);
 		var source:Dynamic = {date: now, other: now, extra: now};
 		var r:{date:Date, ?other:Date, ?optional:Date} = Clone.clone(source);
@@ -33,8 +29,7 @@ class RunTests extends TestCase
 		assertFalse(Reflect.hasField(r, "extra"));
 	}
 	
-	function testEnum()
-	{
+	function testEnum() {
 		var arr = [2,3,4];
 		var a = EnumA(1, arr);
 		var source:Dynamic = {e: a};
@@ -59,8 +54,7 @@ class RunTests extends TestCase
 		}
 	}
 	
-	function testDynamic()
-	{
+	function testDynamic() {
 		var source:Dynamic = {date: Date.now(), float: 1.1, string: '1', array: [1,2,3]};
 		var r:{date:Dynamic, float:Dynamic, string:Dynamic, array:Dynamic} = Clone.clone(source);
 		
@@ -70,8 +64,7 @@ class RunTests extends TestCase
 		assertEquals(source.array, r.array);
 	}
 	
-	function testComplex()
-	{
+	function testComplex() {
 		var source:Dynamic= {a:1, b:2, c:"c", d:{a:1, b:1}, e:{a:1, b:1}, f:[{a:1},{a:2}]};
 		var r:{?c:String, b:Float, f:Array<{a:Int}>, ?g:Bool} = Clone.clone(source);
 		
@@ -89,8 +82,7 @@ class RunTests extends TestCase
 		assertEquals(null, r.g);
 	}
 	
-	function testArray()
-	{
+	function testArray() {
 		var source:Dynamic = {a:[1,2,3]};
 		
 		var result:{a:Array<Int>} = Clone.clone(source);
@@ -104,8 +96,7 @@ class RunTests extends TestCase
 		assertTrue(result.a == source.a);
 	}
 	
-	function testBytes()
-	{
+	function testBytes() {
 		var source:Dynamic = {a:Bytes.ofString("test")};
 		
 		var result:{a:Bytes} = Clone.clone(source);
@@ -116,8 +107,7 @@ class RunTests extends TestCase
 		assertTrue(result.a == source.a);
 	}
 	
-	function testMap()
-	{
+	function testMap() {
 		var source:Dynamic = {a:['key1' => 1, 'key2' => 2]};
 		
 		var result:{a:Map<String, Int>} = Clone.clone(source);

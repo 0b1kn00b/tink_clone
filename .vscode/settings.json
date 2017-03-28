@@ -1,0 +1,6 @@
+{
+    "haxe.displayConfigurations": [
+        ["tink_clone.hxml"],
+        ["tests.hxml"]
+    ]
+}
