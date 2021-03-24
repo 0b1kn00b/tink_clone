@@ -34,7 +34,7 @@ class Macro {
 		function add(t:TypeDefinition)
 			cl.fields = cl.fields.concat(t.fields);
 		
-		var ret = Crawler.crawl(t, pos, GenCloner);
+		var ret = Crawler.crawl(t, pos, (crawler:Crawler) -> new GenCloner().asGenerator());
 		cl.fields = cl.fields.concat(ret.fields);
 		
 		add(macro class {
@@ -48,48 +48,44 @@ class Macro {
 	}
 }
 
-class GenCloner {
-	
-	static public function wrap(placeholder:Expr, ct:ComplexType)
+class GenCloner{
+	public function new(){}
+	public function wrap(placeholder:Expr, ct:ComplexType)
 		return placeholder.func(['value'.toArg(ct)]);
 		
-	static public function nullable(e)
+	public function nullable(e)
 		return macro if(value != null) $e else null;
 		
-	static public function string()
+	public function string()
+		return macro value;
+
+	public function float()
+		return macro value;
+			
+	public function int()
+		return macro value;
+	
+	public function dyn(_, _)
 		return macro value;
 		
-	static public function int()
+	public function dynAccess(_)
 		return macro value;
 		
-	static public function float()
+	
+	public function bool()
 		return macro value;
 		
-	static public function bool()
+	public function date()
 		return macro value;
 		
-	static public function date()
-		return macro value;
-		
-	static public function bytes()
+	public function bytes()
 		return macro if(!deepCopyBytes) value else {
 			var bytes = haxe.io.Bytes.alloc(value.length);
 			bytes.blit(0, value, 0, value.length);
 			bytes;
 		}
-		
-	static public function map(k, v)
-		return macro if(!deepCopyMap) value else {
-			var src = value;
-			var dst = new Map();
-			for(key in src.keys()) {
-				var value = src.get(key);
-				dst.set(key, $v);
-			}
-			dst;
-		}
-		
-	static public function anon(fields:Array<FieldInfo>, ct)
+			
+	public function anon(fields:Array<FieldInfo>, ct)
 		return macro {
 			var __ret:Dynamic = {};
 			$b{[for(f in fields) {
@@ -104,12 +100,22 @@ class GenCloner {
 			__ret;
 		}
 		
-	static public function array(e:Expr)
+	public function array(e:Expr)
 		return macro if(!deepCopyArray) value else {
 			[for(value in value) $e];
 		}
-		
-	static public function enm(constructors:Array<EnumConstructor>, type, _, _) {
+	public function map(k, v)
+		return macro if(!deepCopyMap) value else {
+			var src = value;
+			var dst = new Map();
+			for(key in src.keys()) {
+				var value = src.get(key);
+				dst.set(key, $v);
+			}
+			dst;
+		}
+	
+	public function enm(constructors:Array<EnumConstructor>, type, _, _) {
 		var cases = [];
 		for(ctor in constructors) {
 			var args = ctor.inlined ? [macro value] : [for(f in ctor.fields) macro $i{f.name}];
@@ -135,27 +141,32 @@ class GenCloner {
 		}
 		return macro if(!deepCopyEnum) value else ${ESwitch(macro value, cases, null).at()};
 	}
-		
-	static public function dyn(_, _)
+	public function enumAbstract(names:Array<Expr>, e:Expr, ct:ComplexType, pos:Position):Expr{
 		return macro value;
+	}	
 		
-	static public function dynAccess(_)
-		return macro value;
-		
-	static public function reject(t:Type)
-		return 'Cannot handle ${t.toString()}';
-		
-	static public function rescue(t:Type, _, _)
+	public function rescue(t:Type, _, _) { 
 		return switch t {
+			case TMono(t) :
+				Some(dyn(null, null));
 			case TDynamic(t) if (t == null):
 				Some(dyn(null, null));
 			default: 
 				None;
 		}
-	
-	static public function shouldIncludeField(c:ClassField, owner:Option<ClassType>):Bool
+	}
+	public function reject(t:Type)
+			return 'Cannot handle ${t.toString()}';
+			
+		
+	public function shouldIncludeField(c:ClassField, owner:Option<ClassType>):Bool
 		return Helper.shouldIncludeField(c, owner);
 
-	static public function drive(type:Type, pos:Position, gen:Type->Position->Expr):Expr
+	public function drive(type:Type, pos:Position, gen:Type->Position->Expr):Expr
 		return gen(type, pos);
+
+	
+	public function asGenerator():tink.typecrawler.Generator{
+		return this;
+	}
 }

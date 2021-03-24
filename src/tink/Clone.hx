@@ -4,11 +4,12 @@ import haxe.macro.*;
 
 #if macro
 using tink.MacroApi;
+using tink.macro.Types;
 #end
 
 class Clone
 {
-	public static macro function clone(e:Expr, ?options:Expr) 
+	public static macro function clone(e:Expr, ?options:Expr){
 		return switch e {
 			case macro ($e:$ct):
 				if(options == null) options = macro null;
@@ -22,4 +23,5 @@ class Clone
 						macro @:pos(e.pos) new tink.clone.Cloner<$ct>($options).clone($e);
 				}
 		}
+	}
 }
